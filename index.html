@@ -16,11 +16,9 @@
 </head>
 <body>
 
-  <!-- Navigation -->
   <a href="#token">🔑 Token Extractor</a>
   <a href="#qris">💳 Check Mutasi QRIS</a>
 
-  <!-- Page 1: Token Extractor -->
   <div id="pageToken" class="page">
     <h3>🔑 OrderKuota Token Extractor</h3>
     <input id="username" placeholder="Username">
@@ -30,7 +28,6 @@
     <pre id="resultToken">Masukkan username dan password untuk mendapatkan token & merchant_id.</pre>
   </div>
 
-  <!-- Page 2: Check Mutasi QRIS -->
   <div id="pageQris" class="page">
     <h3>💳 Check Mutasi QRIS</h3>
     <input id="merchant_id" placeholder="Merchant ID">
@@ -60,9 +57,8 @@
     }
 
     window.addEventListener('hashchange', showPage);
-    showPage(); // initial load
+    showPage();
 
-    // Token Extractor Logic
     document.getElementById('loginBtn').addEventListener('click', async () => {
       const username = document.getElementById('username').value.trim();
       const password = document.getElementById('password').value.trim();
@@ -104,7 +100,7 @@ USERNAME: ${data.username}
 SALDO: ${data.balance}
 
 Salin token & merchant_id, lalu buka halaman "Check Mutasi QRIS" untuk melihat mutasi QRIS.`;
-          // Auto-fill ke halaman mutasi
+
           document.getElementById('merchant_id').value = data.merchant_id;
           document.getElementById('token').value = data.token;
           document.getElementById('usernameMutasi').value = data.username;
@@ -117,7 +113,6 @@ Salin token & merchant_id, lalu buka halaman "Check Mutasi QRIS" untuk melihat m
       }
     });
 
-    // Check Mutasi QRIS Logic
     document.getElementById('checkMutasiBtn').addEventListener('click', async () => {
       const merchant_id = document.getElementById('merchant_id').value.trim();
       const token = document.getElementById('token').value.trim();
@@ -139,10 +134,12 @@ Salin token & merchant_id, lalu buka halaman "Check Mutasi QRIS" untuk melihat m
         const data = await res.json();
         console.log("Response /api/qris:", data);
 
-        if (data.success) {
+        if (data.success && data.mutasi) {
           resultMutasi.textContent = data.mutasi;
-        } else {
+        } else if (!data.success && data.message) {
           resultMutasi.textContent = `❌ Gagal mengambil mutasi QRIS: ${data.message}`;
+        } else {
+          resultMutasi.textContent = `❌ Gagal mengambil mutasi QRIS: Respon tidak valid.`;
         }
       } catch (e) {
         console.error(e);
