@@ -5,73 +5,64 @@
   <title>OrderKuota Tools</title>
   <style>
     body { font-family: sans-serif; max-width: 400px; margin: 30px auto; }
-    input, button { width: 100%; padding: 10px; margin: 5px 0; }
+    input, button, a { width: 100%; padding: 10px; margin: 5px 0; display: block; text-align: center; }
     pre { background: #f9f9f9; padding: 10px; white-space: pre-wrap; word-break: break-all; }
     h3 { text-align: center; }
     .page { display: none; }
     .active { display: block; }
+    a { background: #007bff; color: white; text-decoration: none; border-radius: 5px; }
   </style>
 </head>
 <body>
+
+  <!-- Navigation -->
+  <a href="#token">🔑 Token Extractor</a>
+  <a href="#qris">💳 Check Mutasi QRIS</a>
+
   <!-- Page 1: Token Extractor -->
-  <div id="pageTokenExtractor" class="page active">
+  <div id="pageToken" class="page">
     <h3>OrderKuota Token Extractor</h3>
     <input id="username" placeholder="Username">
     <input id="password" placeholder="Password" type="password">
     <input id="otp" placeholder="Masukkan OTP">
     <button id="loginBtn">Login</button>
-    <button id="gotoMutasiBtn">➡️ Buka Check Mutasi QRIS</button>
     <pre id="resultToken">Masukkan username dan password untuk mendapatkan token & merchant_id.</pre>
   </div>
 
   <!-- Page 2: Check Mutasi QRIS -->
-  <div id="pageMutasiQris" class="page">
+  <div id="pageQris" class="page">
     <h3>Check Mutasi QRIS</h3>
     <input id="merchant_id" placeholder="Merchant ID">
     <input id="token" placeholder="Token">
     <input id="usernameMutasi" placeholder="Username">
     <button id="checkMutasiBtn">Check Mutasi QRIS</button>
-    <button id="gotoTokenBtn">⬅️ Kembali ke Token Extractor</button>
     <pre id="resultMutasi">Masukkan Merchant ID, Token, dan Username untuk cek mutasi QRIS.</pre>
   </div>
 
   <script>
-    // Element references
-    const pageToken = document.getElementById('pageTokenExtractor');
-    const pageMutasi = document.getElementById('pageMutasiQris');
+    const pageToken = document.getElementById('pageToken');
+    const pageQris = document.getElementById('pageQris');
     const otpInput = document.getElementById('otp');
-    const loginBtn = document.getElementById('loginBtn');
-    const gotoMutasiBtn = document.getElementById('gotoMutasiBtn');
-    const gotoTokenBtn = document.getElementById('gotoTokenBtn');
     const resultToken = document.getElementById('resultToken');
     const resultMutasi = document.getElementById('resultMutasi');
-    const checkMutasiBtn = document.getElementById('checkMutasiBtn');
 
-    let savedToken = "";
-    let savedMerchantId = "";
-
-    // Switcher
-    function showPage(page) {
+    function showPage() {
+      const hash = window.location.hash;
       pageToken.classList.remove('active');
-      pageMutasi.classList.remove('active');
-      page.classList.add('active');
+      pageQris.classList.remove('active');
+
+      if (hash === '#qris') {
+        pageQris.classList.add('active');
+      } else {
+        pageToken.classList.add('active');
+      }
     }
 
-    // Go to Mutasi QRIS Page
-    gotoMutasiBtn.addEventListener('click', () => {
-      document.getElementById('merchant_id').value = savedMerchantId;
-      document.getElementById('token').value = savedToken;
-      document.getElementById('usernameMutasi').value = document.getElementById('username').value;
-      showPage(pageMutasi);
-    });
-
-    // Back to Token Extractor Page
-    gotoTokenBtn.addEventListener('click', () => {
-      showPage(pageToken);
-    });
+    window.addEventListener('hashchange', showPage);
+    showPage(); // initial load
 
     // Login Token Extractor Logic
-    loginBtn.addEventListener('click', async () => {
+    document.getElementById('loginBtn').addEventListener('click', async () => {
       const username = document.getElementById('username').value.trim();
       const password = document.getElementById('password').value.trim();
       const otp = otpInput.value.trim();
@@ -96,8 +87,6 @@
           otpInput.style.display = 'block';
           resultToken.textContent = `🔑 OTP telah dikirim ke: ${data.message}\nMasukkan OTP lalu klik Login kembali.`;
         } else if (data.success) {
-          savedToken = data.token;
-          savedMerchantId = data.merchant_id;
           otpInput.style.display = 'none';
           otpInput.value = '';
           resultToken.textContent =
@@ -113,7 +102,7 @@ NAMA: ${data.name}
 USERNAME: ${data.username}
 SALDO: ${data.balance}
 
-Klik "➡️ Buka Check Mutasi QRIS" untuk melihat mutasi QRIS.`;
+Salin token & merchant_id lalu buka halaman "Check Mutasi QRIS".`;
         } else {
           resultToken.textContent = `❌ ${data.message || 'Terjadi kesalahan.'}`;
         }
@@ -124,7 +113,7 @@ Klik "➡️ Buka Check Mutasi QRIS" untuk melihat mutasi QRIS.`;
     });
 
     // Check Mutasi QRIS Logic
-    checkMutasiBtn.addEventListener('click', async () => {
+    document.getElementById('checkMutasiBtn').addEventListener('click', async () => {
       const merchant_id = document.getElementById('merchant_id').value.trim();
       const token = document.getElementById('token').value.trim();
       const username = document.getElementById('usernameMutasi').value.trim();
