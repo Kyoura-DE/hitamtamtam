@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>OrderKuota Token Extractor</title>
+  <style>
+    body { font-family: sans-serif; max-width: 400px; margin: 30px auto; }
+    input, button { width: 100%; padding: 10px; margin: 5px 0; }
+    pre { background: #f9f9f9; padding: 10px; white-space: pre-wrap; word-break: break-all; }
+    h3 { text-align: center; }
+  </style>
+</head>
+<body>
+  <h3>OrderKuota Token Extractor</h3>
+  <input id="username" placeholder="Username" autocomplete="username">
+  <input id="password" placeholder="Password" type="password" autocomplete="current-password">
+  <input id="otp" placeholder="OTP jika diminta">
+  <button id="btn">Login</button>
+  <pre id="result">Masukkan username dan password OrderKuota Anda, lalu klik Login.</pre>
+
+  <script>
+    const btn = document.getElementById('btn');
+    const result = document.getElementById('result');
+
+    btn.addEventListener('click', async () => {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const otp = document.getElementById('otp').value.trim();
+
+      if (!username || !password) {
+        result.textContent = "❌ Username dan Password tidak boleh kosong.";
+        return;
+      }
+
+      result.textContent = "⏳ Memproses...";
+
+      try {
+        const res = await fetch('/api', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password, otp })
+        });
+        const data = await res.json();
+
+        if (data.need_otp) {
+          result.textContent = `🔑 OTP diperlukan: ${data.message}\nSilakan masukkan OTP dan klik Login kembali.`;
+        } else if (data.success) {
+          result.textContent =
+`✅ Login Berhasil!
+
+TOKEN:
+${data.token}
+
+MERCHANT_ID:
+${data.merchant_id}
+
+NAMA: ${data.name}
+USERNAME: ${data.username}
+SALDO: ${data.balance}
+
+✅ Silakan copy untuk automasi Anda.`;
+        } else {
+          result.textContent = `❌ ${data.message || 'Terjadi kesalahan.'}`;
+        }
+      } catch (e) {
+        result.textContent = `❌ Gagal memproses: ${e.message}`;
+      }
+    });
+  </script>
+</body>
+</html>
