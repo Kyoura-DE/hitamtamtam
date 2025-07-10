@@ -4,13 +4,14 @@
   <meta charset="UTF-8" />
   <title>OrderKuota Tools</title>
   <style>
-    body { font-family: sans-serif; max-width: 400px; margin: 30px auto; }
+    body { font-family: monospace, sans-serif; max-width: 450px; margin: 30px auto; padding: 0 10px; }
     input, button, a { width: 100%; padding: 10px; margin: 5px 0; display: block; text-align: center; }
-    pre { background: #f9f9f9; padding: 10px; white-space: pre-wrap; word-break: break-all; }
+    pre { background: #f4f4f4; padding: 10px; white-space: pre-wrap; word-break: break-word; }
     h3 { text-align: center; }
     .page { display: none; }
     .active { display: block; }
-    a { background: #007bff; color: white; text-decoration: none; border-radius: 5px; }
+    a { background: #007bff; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; }
+    button { background: #007bff; color: white; border: none; border-radius: 5px; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -21,17 +22,17 @@
 
   <!-- Page 1: Token Extractor -->
   <div id="pageToken" class="page">
-    <h3>OrderKuota Token Extractor</h3>
+    <h3>🔑 OrderKuota Token Extractor</h3>
     <input id="username" placeholder="Username">
     <input id="password" placeholder="Password" type="password">
     <input id="otp" placeholder="Masukkan OTP">
-    <button id="loginBtn">Login</button>
+    <button id="loginBtn">Login & Get Token</button>
     <pre id="resultToken">Masukkan username dan password untuk mendapatkan token & merchant_id.</pre>
   </div>
 
   <!-- Page 2: Check Mutasi QRIS -->
   <div id="pageQris" class="page">
-    <h3>Check Mutasi QRIS</h3>
+    <h3>💳 Check Mutasi QRIS</h3>
     <input id="merchant_id" placeholder="Merchant ID">
     <input id="token" placeholder="Token">
     <input id="usernameMutasi" placeholder="Username">
@@ -61,7 +62,7 @@
     window.addEventListener('hashchange', showPage);
     showPage(); // initial load
 
-    // Login Token Extractor Logic
+    // Token Extractor Logic
     document.getElementById('loginBtn').addEventListener('click', async () => {
       const username = document.getElementById('username').value.trim();
       const password = document.getElementById('password').value.trim();
@@ -102,7 +103,11 @@ NAMA: ${data.name}
 USERNAME: ${data.username}
 SALDO: ${data.balance}
 
-Salin token & merchant_id lalu buka halaman "Check Mutasi QRIS".`;
+Salin token & merchant_id, lalu buka halaman "Check Mutasi QRIS" untuk melihat mutasi QRIS.`;
+          // Auto-fill ke halaman mutasi
+          document.getElementById('merchant_id').value = data.merchant_id;
+          document.getElementById('token').value = data.token;
+          document.getElementById('usernameMutasi').value = data.username;
         } else {
           resultToken.textContent = `❌ ${data.message || 'Terjadi kesalahan.'}`;
         }
@@ -135,7 +140,7 @@ Salin token & merchant_id lalu buka halaman "Check Mutasi QRIS".`;
         console.log("Response /api/qris:", data);
 
         if (data.success) {
-          resultMutasi.textContent = `✅ Mutasi QRIS:\n\n${data.mutasi.join('\n')}\n\nSaldo Utama: ${data.saldo_utama}\nSaldo QRIS: ${data.saldo_qris}`;
+          resultMutasi.textContent = data.mutasi;
         } else {
           resultMutasi.textContent = `❌ Gagal mengambil mutasi QRIS: ${data.message}`;
         }
