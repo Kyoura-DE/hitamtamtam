@@ -4,6 +4,7 @@ export default async function handler(req, res) {
   }
 
   const { username, password, otp } = req.body;
+  console.log("Received Request:", { username, password, otp }); // ✅ DEBUG
 
   const data = new URLSearchParams({
     password: otp && otp.trim() !== "" ? otp : password,
@@ -28,10 +29,20 @@ export default async function handler(req, res) {
       body: data
     });
 
-    const json = await response.json();
+    const text = await response.text();
+    console.log("Raw Response from OrderKuota:", text); // ✅ DEBUG
+
+    let json;
+    try {
+      json = JSON.parse(text);
+    } catch (e) {
+      console.error("JSON Parse Error:", e); // ✅ DEBUG
+      return res.status(500).json({ success: false, message: "Gagal parse JSON dari OrderKuota", raw: text });
+    }
 
     if (json.success) {
       if (json.results.otp && !otp) {
+        console.log("OTP needed, sending back to client."); // ✅ DEBUG
         res.json({
           need_otp: true,
           message: json.results.otp_value
@@ -39,6 +50,7 @@ export default async function handler(req, res) {
       } else {
         const token = json.results.token;
         const merchant_id = token.split(":")[0];
+        console.log("Login success, sending token to client."); // ✅ DEBUG
         res.json({
           success: true,
           token,
@@ -49,12 +61,14 @@ export default async function handler(req, res) {
         });
       }
     } else {
+      console.log("Login failed, sending fail message."); // ✅ DEBUG
       res.json({
         success: false,
         message: "Login gagal, periksa data."
       });
     }
   } catch (e) {
+    console.error("Fetch Error:", e); // ✅ DEBUG
     res.status(500).json({ success: false, message: e.message });
   }
 }
