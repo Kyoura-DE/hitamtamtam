@@ -37,15 +37,19 @@
       result.textContent = "⏳ Memproses...";
 
       try {
+        console.log("Sending request to /api with:", { username, password, otp }); // ✅ DEBUG
+
         const res = await fetch('/api', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, password, otp })
         });
+
         const data = await res.json();
+        console.log("Response from /api:", data); // ✅ DEBUG
 
         if (data.need_otp) {
-          otpInput.style.display = 'block'; // 🔥 Tampilkan OTP hanya setelah OTP terkirim
+          otpInput.style.display = 'block';
           result.textContent = `🔑 OTP telah dikirim ke: ${data.message}\nSilakan masukkan OTP dan klik Login kembali.`;
         } else if (data.success) {
           result.textContent =
@@ -62,12 +66,13 @@ USERNAME: ${data.username}
 SALDO: ${data.balance}
 
 ✅ Silakan copy untuk automasi Anda.`;
-          otpInput.style.display = 'none'; // Sembunyikan OTP setelah login sukses
-          otpInput.value = ''; // Reset OTP input
+          otpInput.style.display = 'none';
+          otpInput.value = '';
         } else {
           result.textContent = `❌ ${data.message || 'Terjadi kesalahan.'}`;
         }
       } catch (e) {
+        console.error("Error saat fetch:", e); // ✅ DEBUG
         result.textContent = `❌ Gagal memproses: ${e.message}`;
       }
     });
