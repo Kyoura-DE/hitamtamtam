@@ -42,14 +42,34 @@ export default async function handler(req, res) {
     console.log("Response from OrderKuota QRIS:", json);
 
     if (json.success && json.qris_history && json.qris_history.success) {
-      const mutasi = json.qris_history.results.map((trx, idx) => {
-        return `${idx + 1}. ID: ${trx.id}, Tgl: ${trx.tanggal}, Kredit: Rp${trx.kredit}, Debet: Rp${trx.debet}, Saldo: Rp${trx.saldo_akhir}, Ket: ${trx.keterangan.trim()}, Brand: ${trx.brand.name}`;
+      const qris = json.qris_history.results;
+      let output = `✅ Total Mutasi QRIS: ${qris.length} transaksi\n\n`;
+
+      qris.forEach((trx, idx) => {
+        const status = trx.status === "IN" ? "Success" : trx.status;
+        output +=
+`${idx + 1}. ID Mutasi: ${trx.id}
+   Tanggal      : ${trx.tanggal}
+   Kredit       : Rp ${trx.kredit}
+   Debet        : Rp ${trx.debet}
+   Saldo Akhir  : Rp ${trx.saldo_akhir}
+   Keterangan   : ${trx.keterangan.trim()}
+   Status       : ${status}
+   Brand        : ${trx.brand.name}
+--------------------------------------------------
+`;
       });
 
-      const saldo_utama = `Rp ${json.account.results.balance}`;
-      const saldo_qris = `Rp ${json.account.results.qris_balance}`;
+      const acc = json.account.results;
+      output += `
+👤 Info Akun:
+   Nama Akun    : ${acc.name}
+   Username     : ${acc.username}
+   Saldo Utama  : Rp ${acc.balance}
+   Saldo QRIS   : Rp ${acc.qris_balance}
+`;
 
-      res.json({ success: true, mutasi, saldo_utama, saldo_qris });
+      res.json({ success: true, mutasi: output });
     } else {
       res.json({ success: false, message: "Gagal mengambil mutasi QRIS atau tidak ada transaksi." });
     }
